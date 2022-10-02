@@ -2,8 +2,7 @@
 
 Export chats and files from the XMPP client [Dino](https://dino.im) into a plain-text format.
 
-![A screenshot of a conversation in Dino](res/dino-screenshot.png)
-![A screenshot of the same conversation in HTML format, displayed in Firefox.](res/firefox-screenshot.png)
+![A screenshot of the same conversation two windows: Once in Dino, and once in HTML format displayed in Firefox.](res/combined-screenshot.png)
 
 
 
