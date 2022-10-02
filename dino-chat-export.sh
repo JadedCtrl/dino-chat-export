@@ -4,6 +4,8 @@
 # Desc: Export all conversations from Dino (XMPP client)'s database into
 #       textual format
 # Reqs: shell, sqlite3
+# Lisc: GPLv3+
+# Auth: jadedctrl <jadedctrl@posteo.at>
 # Date: 2022-10
 #―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
 
