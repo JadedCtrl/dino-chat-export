@@ -240,11 +240,15 @@ message_slots_to_selection() {
 
 # Prints a header/footer for message output, replacing useful variables
 output_message_cap() {
-	printf "$MESSAGE_HEADER" \
+	local account_id="$1"
+	local partner_id="$2"
+	local message_cap="$3"
+
+	echo "$message_cap" \
 		| sed 's%YOUR_JID%'"$(account_jid_and_nick "$account_id" | head -1)"'%g' \
 		| sed 's%YOUR_NICK%'"$(account_jid_and_nick "$account_id" | tail -1)"'%g' \
 		| sed 's%THEIR_JID%'"$(id_jid_and_nick "$partner_id" | head -1)"'%g' \
-		| sed 's%THEIR_NICK%'"$(id_jid_and_nick "$partner_id" | tail -1)"'%g' 
+		| sed 's%THEIR_NICK%'"$(id_jid_and_nick "$partner_id" | tail -1)"'%g'
 }
 
 
@@ -254,7 +258,7 @@ output_messages_with_partner() {
 	local partner_id="$2"
 	local output_dir="$3" # optional, only used to guess avatar paths
 
-	output_message_cap "$account_id" "$partner_id" "$MESSAGE_HEADER" "$output_dir"
+	output_message_cap "$account_id" "$partner_id" "$MESSAGE_HEADER"
 
 	sqlite "$DB_FILE" \
 		"SELECT FORMAT('$MESSAGE_FORMAT',
@@ -265,7 +269,7 @@ output_messages_with_partner() {
 			AND jid.id == $partner_id
 		ORDER BY message.local_time ASC;"
 
-	output_message_cap "$account_id" "$partner_id" "$MESSAGE_FOOTER" "$output_dir"
+	output_message_cap "$account_id" "$partner_id" "$MESSAGE_FOOTER"
 }
 
 
@@ -314,24 +318,20 @@ DB_FILE="$XDG_DATA_HOME/dino/dino.db"
 if test -z "$MESSAGE_FORMAT"; then
 	MESSAGE_FORMAT="%s <%s> %s"
 fi
-MESSAGE_FORMAT='<p><img width="30px" src="%s" /> <b>%s</b> %s %s</p>'
 
 # The slots used in $MESSAGE_FORMAT.
 # May be DATE, JID, BODY, or AVATAR. Must be comma-delimited.
 if test -z "$MESSAGE_SLOTS"; then
 	MESSAGE_SLOTS="DATE, JID, BODY"
 fi
-MESSAGE_SLOTS="AVATAR, DATE, JID, BODY"
 
-# A header printed before messages are output (could be "<!DOCTYPE html><html><body>", for example)
-MESSAGE_HEADER='<!DOCTYPE html>\n<html>\n<head>\n<title>Conversation with THEIR_JID - YOUR_JID</title></head><body>\n<pre>'
+if test -z "$FILE_FORMAT"; then
+	FILE_FORMAT="File uploaded: %s"
+fi
 
-# A footer printed after messages are output (could be "</body></html>", for example)
-MESSAGE_FOOTER='</body></html>'
-
-
-IMAGE_FORMAT='<img style="max-width: 50%%;" src="%s" />'
-FILE_FORMAT='<a href="%s" />%s</a>'
+if test -z "$IMAGE_FORMAT"; then
+	IMAGE_FORMAT="Image uploaded: %s"
+fi
 
 
 
