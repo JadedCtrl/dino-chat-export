@@ -165,6 +165,12 @@ archive_files_with_partner() {
 
 	THEIR_AVATAR="$(archive_avatars "$account_id" "$partner_id" "$output_dir/avatar" | head -1)"
 	YOUR_AVATAR="$(archive_avatars "$account_id" "$(account_jid_id "$account_id")" "$output_dir/your_avatar" | head -1)"
+	if test -z "$THEIR_AVATAR"; then
+		THEIR_AVATAR="files/their_avatar.png"
+	fi
+	if test -z "$YOUR_AVATAR"; then
+		YOUR_AVATAR="files/your_avatar.png"
+	fi
 
 	local files="$(sqlite  "$DB_FILE" \
 		"SELECT path
