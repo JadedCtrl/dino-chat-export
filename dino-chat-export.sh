@@ -1,4 +1,4 @@
-#!/bin/sh
+ #!/bin/sh
 #―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――
 # Name: dino-chat-exporter
 # Desc: Export all conversations from Dino (XMPP client)'s database into
@@ -165,6 +165,15 @@ archive_files_with_partner() {
 
 	THEIR_AVATAR="$(archive_avatars "$account_id" "$partner_id" "$output_dir/avatar" | head -1)"
 	YOUR_AVATAR="$(archive_avatars "$account_id" "$(account_jid_id "$account_id")" "$output_dir/your_avatar" | head -1)"
+
+	local files="$(sqlite  "$DB_FILE" \
+		"SELECT path
+			FROM file_transfer
+			WHERE counterpart_id == $partner_id AND account_id == $account_id;")"
+
+	for file in $files; do
+		cp "$DINO_HOME/files/$file" "$output_dir/$file"
+	done
 }
 
 
@@ -185,6 +194,13 @@ archive_avatars() {
 }
 
 
+archive_file_tranfers() {
+	local account_id="$1"
+	local counterpart_id="$2"
+
+}
+
+
 # For flexibility in formatting, we let the user define the selection order in a simplified manner
 message_slots_to_selection() {
 	local slots="$1"
@@ -201,11 +217,31 @@ message_slots_to_selection() {
 			ELSE 'files/$(basename "$YOUR_AVATAR")'
 		END"
 
+	# If this message has a file attached, print the file's relative path
+	# Uses two seperate output formats for files and for images
+	local body_query_part="
+		CASE
+			WHEN message.id == (
+					SELECT file_transfer.info
+					FROM file_transfer
+					WHERE file_transfer.info == message.id )
+				THEN ( SELECT
+						CASE
+							WHEN (file_transfer.path LIKE '%.jpg') OR (file_transfer.path LIKE '%.jpeg') OR (file_transfer.path LIKE '%.jpeg')
+									OR (file_transfer.path LIKE '%.png') OR (file_transfer.path LIKE '%.webm') OR (file_transfer.path LIKE '%.svg')
+								THEN PRINTF('$IMAGE_FORMAT', 'files/' || path)
+								ELSE PRINTF('$FILE_FORMAT', 'files/' || path)
+						END
+						FROM file_transfer
+						WHERE file_transfer.info == message.id )
+				ELSE message.body
+		END"
+
 	echo "$slots" \
 	| sed "s^DATE^DATETIME(message.local_time, 'unixepoch', 'localtime')^g" \
 	| sed "s^JID^$(echo "$jid_query_part" | tr '\n' ' ' | tr -d '\t')^g" \
 	| sed "s^AVATAR^$(echo "$avatar_query_part" | tr '\n' ' ' | tr -d '\t')^g" \
-	| sed 's^BODY^message.body^g'
+	| sed "s^BODY^$(echo "$body_query_part" | tr '\n' ' ' | tr -d '\t')^g"
 }
 
 
@@ -301,6 +337,10 @@ MESSAGE_HEADER='<!DOCTYPE html>\n<html>\n<head>\n<title>Conversation with THEIR_
 MESSAGE_FOOTER='</body></html>'
 
 
+IMAGE_FORMAT='<img style="max-width: 50%%;" src="%s" />'
+FILE_FORMAT='<a href="%s" />%s</a>'
+
+
 
 # STATE
 # ———————————————————————————————————————————————————————————————————————————————
@@ -315,7 +355,7 @@ YOUR_AVATAR=""
 
 # INVOCATION
 # ———————————————————————————————————————————————————————————————————————————————
-OUTPUT="/tmp/export/"
+OUTPUT="/tmp/export"
 
 for account in $(account_list); do
 	# Reset state (repopulated by account_jid_and_nick; account_jid_id; archive_files…)
@@ -329,8 +369,6 @@ for account in $(account_list); do
 		account_output="$OUTPUT/$nick ($jid)/"
 	fi
 
-	echo "$account"
-
 	for partner in $(conversation_partners "$account"); do
 		# Reset state (repopulated by id_jid_and_nick; archive_files_with…)
 		THEIR_INFO=""; THEIR_AVATAR=""
@@ -343,6 +381,7 @@ for account in $(account_list); do
 			partner_output="$account_output/$nick ($jid)/"
 		fi
 
+		echo "Archiving $jid…"
 		archive_conversation_with_partner "$account" "$partner" "$partner_output"
 	done
 done
