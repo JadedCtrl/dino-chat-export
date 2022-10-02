@@ -194,13 +194,6 @@ archive_avatars() {
 }
 
 
-archive_file_tranfers() {
-	local account_id="$1"
-	local counterpart_id="$2"
-
-}
-
-
 # For flexibility in formatting, we let the user define the selection order in a simplified manner
 message_slots_to_selection() {
 	local slots="$1"
@@ -355,7 +348,39 @@ YOUR_AVATAR=""
 
 # INVOCATION
 # ———————————————————————————————————————————————————————————————————————————————
-OUTPUT="/tmp/export"
+
+usage() {
+	echo "usage: $(basename "$0") OUTPUT_DIRECTORY"
+	echo 
+	echo "Exports all conversations and files from the Dino XMPP client into a plain-text format."
+	echo
+	echo '  $DINO_HOME'
+	echo '         Dino data directory (default: $XDG_DATA_HOME/Dino or ~/.local/share/Dino)'
+	echo '  $MESSAGE_HEADER'
+	echo '         Text preceding each message file, with basic substitutions. (e.g., "<html><body>…")'
+	echo '         Substitutions are THEIR_JID, YOUR_JID, THEIR_NICK, and YOUR_NICK.'
+	echo '  $MESSAGE_FOOTER'
+	echo '         Likewise, but is output to the end of each message file. (e.g., "</body></html>")'
+	echo '  $MESSAGE_FORMAT'
+	echo '         Template for message output, in a printf style (e.g., "[%s] <%s>: %s")'
+	echo '  $MESSAGE_SLOTS'
+	echo '         Comma-delimited arguments for $MESSAGE_FORMAT (e.g., "DATE,JID,BODY")'
+	echo '         Valid slots are AVATAR, BODY, DATE, and JID.'
+	echo '  $IMAGE_FORMAT'
+	echo '         Format for message-bodies containing an image. (e.g., "<img src="%s" />)'
+	echo '         Leave blank or as '%s' to simply print the image path.'
+	echo '  $FILE_FORMAT'
+	echo '         Likewise, but for every other sort of attached file.'
+	exit 2
+}
+
+
+OUTPUT="$1"
+if test -z "$OUTPUT" -o "$1" = "--help" -o "$1" = "-h"; then
+   usage
+fi
+
+
 
 for account in $(account_list); do
 	# Reset state (repopulated by account_jid_and_nick; account_jid_id; archive_files…)
