@@ -231,7 +231,7 @@ message_slots_to_selection() {
 							WHEN (file_transfer.path LIKE '%.jpg') OR (file_transfer.path LIKE '%.jpeg') OR (file_transfer.path LIKE '%.jpeg')
 									OR (file_transfer.path LIKE '%.png') OR (file_transfer.path LIKE '%.webm') OR (file_transfer.path LIKE '%.svg')
 								THEN PRINTF('$IMAGE_FORMAT', 'files/' || path)
-								ELSE PRINTF('$FILE_FORMAT', 'files/' || path)
+								ELSE PRINTF('$FILE_FORMAT', 'files/' || path, 'files/' || path)
 						END
 						FROM file_transfer
 						WHERE file_transfer.info == message.id )
