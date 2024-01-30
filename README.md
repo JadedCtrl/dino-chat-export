@@ -77,5 +77,4 @@ Feel free to spice it up with some real CSS!
 ## Meta
 License is the GNU GPLv3+, COPYING.txt.
 
-- https://notabug.org/jadedctrl/dino-chat-export
-- https://github.com/jadedctrl/dino-chat-export
+- https://hak.xwx.moe/jadedctrl/dino-chat-export
